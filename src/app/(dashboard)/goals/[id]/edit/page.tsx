@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import { GOAL_STATUSES } from '@/lib/constants'
 
 function getMonthOptions(): { value: string; label: string }[] {
-  const months = []
+  const months: { value: string; label: string }[] = []
   const now = new Date()
   for (let i = -2; i <= 6; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
