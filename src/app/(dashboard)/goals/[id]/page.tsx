@@ -56,7 +56,7 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
   const canEdit = session.user.role === 'SUPER_ADMIN' || goal.userId === session.user.id
   const sb = STATUS_BADGE[goal.status] || { variant: 'default', label: goal.status }
 
-  const allPercentages = goal.weeklyGoals.flatMap(wg => wg.weeklyUpdates.map(u => u.progressPercentage))
+  const allPercentages = (goal.weeklyGoals as any[]).flatMap((wg: any) => wg.weeklyUpdates.map((u: any) => u.progressPercentage))
   const averageProgress = allPercentages.length > 0
     ? Math.round(allPercentages.reduce((a, b) => a + b, 0) / allPercentages.length)
     : 0
@@ -78,7 +78,7 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
             </CardContent>
           </Card>
 
-          <WeeklyGoalsSection goalId={goal.id} initial={goal.weeklyGoals.map(wg => ({ id: wg.id, weekNumber: wg.weekNumber, title: wg.title, description: wg.description, status: wg.status }))} canEdit={canEdit} />
+          <WeeklyGoalsSection goalId={goal.id} initial={(goal.weeklyGoals as any[]).map((wg: any) => ({ id: wg.id, weekNumber: wg.weekNumber, title: wg.title, description: wg.description, status: wg.status }))} canEdit={canEdit} />
         </div>
 
         <div className="space-y-4">
