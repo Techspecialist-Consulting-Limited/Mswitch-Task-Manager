@@ -26,10 +26,13 @@ export default async function CalendarPage() {
     orderBy: { deadline: 'asc' },
   })
 
-  const tasks = tasksRaw.map(t => ({
-    ...t,
-    deadline: t.deadline ? t.deadline.toISOString() : null,
-  }))
+  type TaskRow = { id: string; title: string; deadline: Date | null; status: string; assignedTo: { name: string } }
+  const tasks = (tasksRaw as TaskRow[])
+    .filter(t => t.assignedTo)
+    .map(t => ({
+      ...t,
+      deadline: t.deadline ? t.deadline.toISOString() : null,
+    }))
 
   return <CalendarView goals={goals} tasks={tasks} />
 }
