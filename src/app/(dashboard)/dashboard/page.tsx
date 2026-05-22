@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               <CardContent>
                 {recentGoals.length === 0 ? (
                   <p className="text-sm text-zinc-400">No personal goals. <Link href="/goals" className="text-zinc-900 underline">Create one</Link></p>
-                ) : recentGoals.map(g => (
+                ) : (recentGoals as any[]).map(g => (
                   <Link key={g.id} href={`/goals/${g.id}`} className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 mb-2 last:mb-0 hover:bg-zinc-50 transition-colors">
                     <div><p className="text-sm font-medium text-zinc-900">{g.title}</p><p className="text-xs text-zinc-500">{g.month}</p></div>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${g.status === 'ACTIVE' ? 'bg-blue-50 text-blue-700' : g.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-600'}`}>{g.status}</span>
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
               <CardContent>
                 {unitGoals.length === 0 ? (
                   <p className="text-sm text-zinc-400">No goals from unit members yet.</p>
-                ) : unitGoals.map(g => (
+                ) : (unitGoals as any[]).map(g => (
                   <Link key={g.id} href={`/goals/${g.id}`} className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 mb-2 last:mb-0 hover:bg-zinc-50 transition-colors">
                     <div><p className="text-sm font-medium text-zinc-900">{g.title}</p><p className="text-xs text-zinc-500">{g.user.name} · {g.month}</p></div>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${g.status === 'ACTIVE' ? 'bg-blue-50 text-blue-700' : g.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-600'}`}>{g.status}</span>
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
             <CardContent>
               {recentGoals.length === 0 ? (
                 <p className="text-sm text-zinc-400">No goals yet. <Link href="/goals" className="text-zinc-900 underline">Create one</Link></p>
-              ) : recentGoals.map(g => (
+              ) : (recentGoals as any[]).map(g => (
                 <Link key={g.id} href={`/goals/${g.id}`} className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 mb-2 last:mb-0 hover:bg-zinc-50 transition-colors">
                   <div><p className="text-sm font-medium text-zinc-900">{g.title}</p><p className="text-xs text-zinc-500">{isAdmin ? `${g.user.name} · ` : ''}{g.month}</p></div>
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${g.status === 'ACTIVE' ? 'bg-blue-50 text-blue-700' : g.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-600'}`}>{g.status}</span>
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
           <CardContent>
             {recentTasks.length === 0 ? (
               <p className="text-sm text-zinc-400">No tasks assigned yet.</p>
-            ) : recentTasks.map(t => (
+            ) : (recentTasks as any[]).map(t => (
               <Link key={t.id} href={`/tasks/${t.id}`} className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 mb-2 last:mb-0 hover:bg-zinc-50 transition-colors">
                 <div><p className="text-sm font-medium text-zinc-900">{t.title}</p><p className="text-xs text-zinc-500">{t.status === 'DONE' ? 'Done' : t.status === 'IN_PROGRESS' ? 'In Progress' : 'To Do'}</p></div>
                 <span className="text-xs text-zinc-400">→ {t.assignedTo.name}</span>
