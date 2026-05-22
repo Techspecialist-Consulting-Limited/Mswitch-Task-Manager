@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  role             String    @default("STAFF")
+  isActive         Boolean   @default(true)
+  unitId           String?
+  unit             Unit?     @relation("UnitMembers", fields: [unitId], references: [id])
+  unitLead         Unit?     @relation("UnitLead")
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  monthlyGoals  MonthlyGoal[]
+  weeklyUpdates WeeklyUpdate[]
+  assignedTasks Task[]       @relation("TaskAssignee")
+  createdTasks  Task[]       @relation("TaskCreator")
+  comments      Comment[]
+  notifications Notification[]
+  apiKeys       ApiKey[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  leadId      String?  @unique
+  lead        User?    @relation("UnitLead", fields: [leadId], references: [id])
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members      User[]         @relation("UnitMembers")
+  monthlyGoals MonthlyGoal[]
+}
+
+model MonthlyGoal {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  month       String
+  status      String    @default("ACTIVE")
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  unitId      String?
+  unit        Unit?     @relation(fields: [unitId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  weeklyGoals WeeklyGoal[]
+}
+
+model WeeklyGoal {
+  id            String   @id @default(cuid())
+  weekNumber    Int
+  title         String
+  description   String?
+  status        String   @default("ACTIVE")
+  monthlyGoalId String
+  monthlyGoal   MonthlyGoal @relation(fields: [monthlyGoalId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  weeklyUpdates WeeklyUpdate[]
+}
+
+model WeeklyUpdate {
+  id                 String   @id @default(cuid())
+  updateText         String
+  progressPercentage Int      @default(0)
+  blockers           String?
+  weeklyGoalId       String
+  weeklyGoal         WeeklyGoal @relation(fields: [weeklyGoalId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User       @relation(fields: [userId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  status       String     @default("TODO")
+  recurrence   String?
+  parentTaskId String?
+  deadline     DateTime?
+  assignedById String
+  assignedBy   User       @relation("TaskCreator", fields: [assignedById], references: [id])
+  assignedToId String
+  assignedTo   User       @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  parentTask   Task?      @relation("RecurringTasks", fields: [parentTaskId], references: [id])
+  childTasks   Task[]     @relation("RecurringTasks")
+}
+
+model GoalTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  weekTitles  String?
+  unitId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  userId     String
+  userName   String
+  metadata   String?
+  createdAt  DateTime @default(now())
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  text       String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  targetType String
+  targetId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("INFO")
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id          String   @id @default(cuid())
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  storagePath String
+  targetType  String
+  targetId    String
+  uploadedById String
+  createdAt   DateTime @default(now())
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  events    String
+  active    Boolean  @default(true)
+  secret    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  name      String
+  key       String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  active    Boolean  @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

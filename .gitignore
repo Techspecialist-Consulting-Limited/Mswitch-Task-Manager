@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.env
+env.local
+*.db
+*.db-journal
+.next/
+out/
+server.log
+tsconfig.tsbuildinfo
+supabase/
+scripts/
+dns-override.cjs
