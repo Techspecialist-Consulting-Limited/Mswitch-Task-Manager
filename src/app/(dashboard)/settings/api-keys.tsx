@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Key, Copy, Trash2, Check, Eye, EyeOff } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/confirm-modal'
 
 interface ApiKeyData {
   id: string
@@ -20,6 +21,7 @@ interface ApiKeyData {
 }
 
 export function ApiKeys() {
+  const { confirm, dialog } = useConfirm()
   const [keys, setKeys] = useState<ApiKeyData[]>([])
   const [loading, setLoading] = useState(true)
   const [showNewForm, setShowNewForm] = useState(false)
@@ -89,7 +91,8 @@ export function ApiKeys() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this API key?')) return
+    const ok = await confirm({ title: 'Delete API key', message: 'Delete this API key?', confirmLabel: 'Delete', variant: 'danger' })
+    if (!ok) return
     try {
       const res = await fetch(`/api/api-keys/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete key')

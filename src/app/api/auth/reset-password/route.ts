@@ -4,6 +4,11 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
+
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
 
 export async function POST(request: Request) {
   try {
@@ -16,8 +21,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
     }
 
+    const tokenHash = hashToken(token)
+
     const user = await prisma.user.findFirst({
-      where: { resetToken: token, resetTokenExpiry: { gte: new Date() } },
+      where: { resetToken: tokenHash, resetTokenExpiry: { gte: new Date() } },
     })
 
     if (!user) {
@@ -30,6 +37,8 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: { passwordHash, resetToken: null, resetTokenExpiry: null },
     })
+
+    console.log(`[RESET] Password reset for user ${user.id}`)
 
     return NextResponse.json({ message: 'Password reset successfully' })
   } catch (err) {

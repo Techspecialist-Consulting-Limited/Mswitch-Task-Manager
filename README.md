@@ -31,7 +31,8 @@ npm run dev
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string (Neon) |
 | `AUTH_SECRET` | Yes | Random secret for NextAuth session encryption |
-| `NEXT_PUBLIC_APP_URL` | Yes | Your app URL (e.g. `https://yourapp.vercel.app`) |
+| `APP_URL` | Yes | Your app URL (e.g. `https://yourapp.vercel.app`) |
+| `BLOB_READ_WRITE_TOKEN` | Yes | Vercel Blob token for file uploads |
 | `RESEND_API_KEY` | No | Resend API key for transactional emails |
 | `SMTP_HOST` | No | SMTP server hostname |
 | `SMTP_PORT` | No | SMTP port (default 587) |
@@ -68,7 +69,8 @@ If no email provider is configured, reset links are logged to the server console
 ## Production Notes
 
 - Database: PostgreSQL via Neon (SQLite is not used in production)
-- File uploads currently use local disk under `public/uploads`. For production on Vercel, move to durable object storage (Vercel Blob, S3, Cloudinary, Supabase Storage).
+- File uploads use [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) for durable object storage. Set `BLOB_READ_WRITE_TOKEN` in your environment.
+- File size limit: 4MB (Vercel serverless function body limit).
 
 ## Tech Stack
 

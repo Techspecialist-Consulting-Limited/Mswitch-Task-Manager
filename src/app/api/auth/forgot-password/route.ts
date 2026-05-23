@@ -6,6 +6,10 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import crypto from 'crypto'
 
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
@@ -13,19 +17,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } })
 
     if (user) {
-      const resetToken = crypto.randomUUID()
+      const rawToken = crypto.randomBytes(32).toString('hex')
+      const tokenHash = hashToken(rawToken)
       const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000)
 
       await prisma.user.update({
-        where: { email },
-        data: { resetToken, resetTokenExpiry },
+        where: { id: user.id },
+        data: { resetToken: tokenHash, resetTokenExpiry },
       })
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || new URL(request.url).origin
-      const resetLink = `${baseUrl}/reset-password?token=${resetToken}`
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
+      const resetLink = `${appUrl}/reset-password?token=${rawToken}`
 
       const emailHtml = `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
@@ -37,6 +42,10 @@ export async function POST(request: Request) {
       `
 
       await sendEmail(email, 'Reset your TaskFlow password', emailHtml)
+
+      console.log(`[FORGOT] Reset link sent to ${email} (user: ${user.id})`)
+    } else {
+      console.log(`[FORGOT] No account found for ${email} — returning generic response`)
     }
 
     return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' })

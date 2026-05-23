@@ -13,11 +13,9 @@ interface Attachment {
   fileName: string
   fileSize: number
   mimeType: string
-  storagePath: string
-  targetType: string
-  targetId: string
-  uploadedById: string
-  url: string | null
+  url: string
+  pathname?: string | null
+  uploadedById?: string
   createdAt: string
 }
 
@@ -139,7 +137,7 @@ export function FileAttachments({ targetType, targetId }: FileAttachmentsProps) 
             const isImage = attachment.mimeType.startsWith('image/')
             return (
               <div key={attachment.id} className="flex items-center gap-3 rounded-lg border border-zinc-100 bg-white p-3">
-                {isImage && attachment.url ? (
+                {isImage ? (
                   <img src={attachment.url} alt={attachment.fileName} className="h-9 w-9 rounded-lg object-cover" />
                 ) : (
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100">
@@ -148,7 +146,7 @@ export function FileAttachments({ targetType, targetId }: FileAttachmentsProps) 
                 )}
                 <div className="flex-1 min-w-0">
                   <a
-                    href={attachment.url || '#'}
+                    href={attachment.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="truncate text-sm font-medium text-zinc-900 hover:text-zinc-600 hover:underline block"
@@ -160,16 +158,14 @@ export function FileAttachments({ targetType, targetId }: FileAttachmentsProps) 
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  {attachment.url && (
-                    <a
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </a>
-                  )}
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                  </a>
                   {canDelete && (
                     <button
                       onClick={() => handleDelete(attachment.id)}

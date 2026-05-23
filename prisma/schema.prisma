@@ -153,15 +153,16 @@ model Notification {
 }
 
 model Attachment {
-  id          String   @id @default(cuid())
-  fileName    String
-  fileSize    Int
-  mimeType    String
-  storagePath String
-  targetType  String
-  targetId    String
+  id           String   @id @default(cuid())
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  url          String
+  pathname     String?
+  targetType   String
+  targetId     String
   uploadedById String
-  createdAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 }
 
 model SystemSetting {

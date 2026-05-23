@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { RotateCcw, Trash2 } from 'lucide-react'
+import { useConfirm } from '@/components/ui/confirm-modal'
 
 interface TrashActionsProps {
   itemId: string
@@ -13,6 +14,7 @@ interface TrashActionsProps {
 
 export function TrashActions({ itemId, type }: TrashActionsProps) {
   const router = useRouter()
+  const { confirm, dialog } = useConfirm()
   const [restoring, setRestoring] = useState(false)
   const [purging, setPurging] = useState(false)
 
@@ -35,7 +37,8 @@ export function TrashActions({ itemId, type }: TrashActionsProps) {
   }
 
   async function handlePurge() {
-    if (!confirm('Are you sure you want to permanently delete this item? This cannot be undone.')) return
+    const ok = await confirm({ title: 'Permanently delete', message: 'Are you sure you want to permanently delete this item? This cannot be undone.', confirmLabel: 'Delete permanently', variant: 'danger' })
+    if (!ok) return
     setPurging(true)
     try {
       const res = await fetch(`/api/trash/${itemId}/purge`, {
@@ -54,7 +57,7 @@ export function TrashActions({ itemId, type }: TrashActionsProps) {
   }
 
   return (
-    <div className="flex shrink-0 gap-2">
+    <>{dialog}<div className="flex shrink-0 gap-2">
       <Button variant="secondary" size="sm" onClick={handleRestore} disabled={restoring}>
         <RotateCcw className={`h-4 w-4 ${restoring ? 'animate-spin' : ''}`} />
         {restoring ? '...' : 'Restore'}
@@ -63,6 +66,6 @@ export function TrashActions({ itemId, type }: TrashActionsProps) {
         <Trash2 className="h-4 w-4" />
         {purging ? '...' : 'Delete'}
       </Button>
-    </div>
+    </div></>
   )
 }

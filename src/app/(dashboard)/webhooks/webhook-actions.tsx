@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Pencil, Trash2, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/ui/confirm-modal'
 
 interface WebhookData {
   id: string
@@ -16,9 +17,11 @@ interface WebhookData {
 
 export function WebhookActions({ webhook }: { webhook: WebhookData }) {
   const router = useRouter()
+  const { confirm, dialog } = useConfirm()
 
   async function handleDelete() {
-    if (!confirm('Delete this webhook?')) return
+    const ok = await confirm({ title: 'Delete webhook', message: 'Delete this webhook?', confirmLabel: 'Delete', variant: 'danger' })
+    if (!ok) return
     try {
       const res = await fetch(`/api/webhooks/${webhook.id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
@@ -40,7 +43,7 @@ export function WebhookActions({ webhook }: { webhook: WebhookData }) {
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <>{dialog}<div className="flex items-center gap-1">
       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleTest} title="Test webhook">
         <Play className="h-4 w-4" />
       </Button>
@@ -52,6 +55,6 @@ export function WebhookActions({ webhook }: { webhook: WebhookData }) {
       <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={handleDelete}>
         <Trash2 className="h-4 w-4" />
       </Button>
-    </div>
+    </div></>
   )
 }

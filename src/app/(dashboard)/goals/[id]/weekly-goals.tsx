@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { Plus, Pencil, Trash2, Target, X, ChevronDown, ChevronRight, AlertTriangle, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/confirm-modal'
 
 interface WeeklyGoal {
   id: string
@@ -47,6 +48,7 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
   const [updateForm, setUpdateForm] = useState({ updateText: '', progressPercentage: 0, blockers: '' })
   const [updateFormLoading, setUpdateFormLoading] = useState(false)
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const { confirm, dialog } = useConfirm()
 
   function resetForm() { setForm({ weekNumber: '', title: '', description: '' }); setShowForm(false); setEditingId(null); setFormErrors({}) }
   function resetUpdateForm() { setUpdateForm({ updateText: '', progressPercentage: 0, blockers: '' }); setFormErrors({}) }
@@ -92,7 +94,8 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this weekly goal? This will also remove all its updates.')) return
+    const ok = await confirm({ title: 'Delete weekly goal', message: 'Delete this weekly goal? This will also remove all its updates.', confirmLabel: 'Delete', variant: 'danger' })
+    if (!ok) return
     const res = await fetch(`/api/weekly-goals/${id}`, { method: 'DELETE' })
     if (!res.ok) { toast.error('Failed to delete'); return }
     setGoals(prev => prev.filter(g => g.id !== id))
@@ -139,7 +142,8 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
   }
 
   async function handleDeleteUpdate(updateId: string, wgId: string) {
-    if (!confirm('Delete this update?')) return
+    const ok = await confirm({ title: 'Delete update', message: 'Delete this update?', confirmLabel: 'Delete', variant: 'danger' })
+    if (!ok) return
     const res = await fetch(`/api/weekly-updates/${updateId}`, { method: 'DELETE' })
     if (!res.ok) { toast.error('Failed to delete'); return }
     setUpdates(prev => ({ ...prev, [wgId]: (prev[wgId] || []).filter(u => u.id !== updateId) }))
@@ -149,6 +153,7 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
 
   return (
     <Card>
+      {dialog}
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Weekly Goals ({goals.length})</CardTitle>

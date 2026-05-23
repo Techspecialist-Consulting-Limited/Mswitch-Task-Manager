@@ -2,6 +2,8 @@ import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 import { prisma } from './prisma'
 
+const APP_NAME = 'TaskFlow'
+
 async function getSmtpSettings() {
   const envHost = process.env.SMTP_HOST
   if (envHost) {
@@ -23,17 +25,20 @@ async function getSmtpSettings() {
   return map
 }
 
+const DEFAULT_FROM = process.env.SMTP_FROM || `${APP_NAME} <noreply@${new URL(process.env.APP_URL || 'http://localhost:3000').hostname}>`
+
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY
 
   if (resendApiKey) {
     try {
       const resend = new Resend(resendApiKey)
-      const from = process.env.SMTP_FROM || 'TaskFlow <noreply@taskflow.app>'
+      const from = DEFAULT_FROM
       await resend.emails.send({ from, to: [to], subject, html })
+      console.log(`[EMAIL] Sent via Resend to ${to} — subject: ${subject}`)
       return
     } catch (error) {
-      console.error('[EMAIL] Resend failed, falling back:', error)
+      console.error('[EMAIL] Resend failed, falling back to SMTP:', error)
     }
   }
 
@@ -49,16 +54,18 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
           : undefined,
       })
       await transporter.sendMail({
-        from: smtp.smtp_from || smtp.smtp_user || 'noreply@example.com',
+        from: smtp.smtp_from || DEFAULT_FROM,
         to,
         subject,
         html,
       })
+      console.log(`[EMAIL] Sent via SMTP to ${to} — subject: ${subject}`)
       return
     }
   } catch (error) {
     console.error('[EMAIL] SMTP failed:', error)
   }
 
-  console.log(`[EMAIL] No email provider configured. To: ${to}, Subject: ${subject}\n${html}`)
+  console.warn(`[EMAIL] No email provider configured. To send real emails, set RESEND_API_KEY or SMTP_HOST/SMTP_PORT in env.`)
+  console.log(`[EMAIL] Would have sent to: ${to}, Subject: ${subject}`)
 }
