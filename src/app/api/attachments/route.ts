@@ -66,6 +66,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('[ATTACHMENT] BLOB_READ_WRITE_TOKEN is not set')
+      return NextResponse.json({ error: 'File storage is not configured. Set BLOB_READ_WRITE_TOKEN.' }, { status: 500 })
+    }
+
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -90,11 +95,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `File type "${file.type}" is not allowed` }, { status: 400 })
     }
 
-    const ext = file.name.split('.').pop() || 'bin'
     const safeName = sanitizeFilename(file.name)
     const blobPathname = `attachments/${crypto.randomUUID()}-${safeName}`
 
-    const blob = await put(blobPathname, file, { access: 'public' })
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const blob = await put(blobPathname, buffer, {
+      access: 'public',
+      contentType: file.type,
+    })
 
     const attachment = await prisma.attachment.create({
       data: {
@@ -122,7 +130,8 @@ export async function POST(request: Request) {
       createdAt: attachment.createdAt,
     })
   } catch (err) {
-    console.error('Attachments POST error:', err)
-    return NextResponse.json({ error: 'Failed to upload file. Check server logs.' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[ATTACHMENT] POST error:', err)
+    return NextResponse.json({ error: `Upload failed: ${message}` }, { status: 500 })
   }
 }
