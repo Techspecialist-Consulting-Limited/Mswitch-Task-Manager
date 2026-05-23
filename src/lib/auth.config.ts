@@ -1,4 +1,5 @@
 export const authConfig = {
+  trustHost: true,
   pages: { signIn: '/login' },
   callbacks: {
     jwt: ({ token, user }: { token: any; user: any }) => {
