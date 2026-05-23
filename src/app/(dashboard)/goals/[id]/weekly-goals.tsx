@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Plus, Pencil, Trash2, Target, X, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Target, X, ChevronDown, ChevronRight, AlertTriangle, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 
@@ -46,11 +46,19 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
   const [form, setForm] = useState({ weekNumber: '', title: '', description: '' })
   const [updateForm, setUpdateForm] = useState({ updateText: '', progressPercentage: 0, blockers: '' })
   const [updateFormLoading, setUpdateFormLoading] = useState(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
-  function resetForm() { setForm({ weekNumber: '', title: '', description: '' }); setShowForm(false); setEditingId(null) }
-  function resetUpdateForm() { setUpdateForm({ updateText: '', progressPercentage: 0, blockers: '' }) }
+  function resetForm() { setForm({ weekNumber: '', title: '', description: '' }); setShowForm(false); setEditingId(null); setFormErrors({}) }
+  function resetUpdateForm() { setUpdateForm({ updateText: '', progressPercentage: 0, blockers: '' }); setFormErrors({}) }
 
-  // --- Weekly Goal CRUD ---
+  function validateUpdateForm() {
+    const errors: Record<string, string> = {}
+    if (!updateForm.updateText.trim()) errors.updateText = 'Update text is required'
+    const pct = Number(updateForm.progressPercentage)
+    if (isNaN(pct) || pct < 0 || pct > 100) errors.progressPercentage = 'Must be 0–100'
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -61,7 +69,7 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ monthlyGoalId: goalId, weekNumber: parseInt(form.weekNumber), title: form.title, description: form.description || null }),
     })
-    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed'); setLoading(false); return }
+    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to create'); setLoading(false); return }
     const created = await res.json()
     setGoals(prev => [...prev, created].sort((a, b) => a.weekNumber - b.weekNumber))
     toast.success('Weekly goal created')
@@ -76,7 +84,7 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekNumber: parseInt(form.weekNumber), title: form.title, description: form.description || null }),
     })
-    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed'); setLoading(false); return }
+    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to update'); setLoading(false); return }
     const updated = await res.json()
     setGoals(prev => prev.map(g => g.id === id ? updated : g).sort((a, b) => a.weekNumber - b.weekNumber))
     toast.success('Weekly goal updated')
@@ -99,8 +107,6 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
     setShowForm(false)
   }
 
-  // --- Updates ---
-
   async function toggleExpand(wgId: string) {
     if (expandedId === wgId) { setExpandedId(null); return }
     setExpandedId(wgId)
@@ -117,14 +123,14 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
 
   async function handleSubmitUpdate(e: React.FormEvent, wgId: string) {
     e.preventDefault()
-    if (!updateForm.updateText) { toast.error('Update text is required'); return }
+    if (!validateUpdateForm()) return
     setUpdateFormLoading(true)
     const res = await fetch('/api/weekly-updates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ weeklyGoalId: wgId, updateText: updateForm.updateText, progressPercentage: updateForm.progressPercentage, blockers: updateForm.blockers || null }),
+      body: JSON.stringify({ weeklyGoalId: wgId, updateText: updateForm.updateText.trim(), progressPercentage: Number(updateForm.progressPercentage), blockers: updateForm.blockers.trim() || null }),
     })
-    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed'); setUpdateFormLoading(false); return }
+    if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to submit update'); setUpdateFormLoading(false); return }
     const created = await res.json()
     setUpdates(prev => ({ ...prev, [wgId]: [created, ...(prev[wgId] || [])] }))
     toast.success('Update submitted')
@@ -153,7 +159,7 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {(showForm || editingId) && (
           <form onSubmit={editingId ? (e) => { e.preventDefault(); handleUpdate(editingId) } : handleCreate} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
             <div className="grid grid-cols-3 gap-3">
@@ -183,10 +189,11 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
         )}
 
         {goals.length === 0 && !showForm ? (
-          <div className="flex flex-col items-center py-8 text-center">
-            <Target className="mb-2 h-6 w-6 text-zinc-300" />
-            <p className="text-sm text-zinc-400">No weekly goals yet.</p>
-            {canEdit && <Button size="sm" variant="secondary" className="mt-3" onClick={() => setShowForm(true)}><Plus className="h-4 w-4" /> Add Week 1</Button>}
+          <div className="flex flex-col items-center py-12 text-center">
+            <Target className="mb-3 h-8 w-8 text-zinc-300" />
+            <p className="text-sm font-medium text-zinc-500">No weekly goals yet</p>
+            <p className="mt-1 text-xs text-zinc-400">Break this monthly goal into weekly milestones.</p>
+            {canEdit && <Button size="sm" variant="secondary" className="mt-4" onClick={() => setShowForm(true)}><Plus className="h-4 w-4" /> Add Week 1</Button>}
           </div>
         ) : goals.map((wg) => (
           <div key={wg.id}>
@@ -210,17 +217,19 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
             )}
 
             {expandedId === wg.id && (
-              <div className="ml-8 mt-2 space-y-3 border-l-2 border-zinc-100 pl-4">
+              <div className="ml-8 mt-3 space-y-4 border-l-2 border-zinc-100 pl-4">
                 {updatesLoading[wg.id] ? (
-                  <p className="text-xs text-zinc-400 py-2">Loading updates...</p>
+                  <p className="text-xs text-zinc-400 py-3">Loading updates...</p>
                 ) : (
                   <>
                     {/* Update List */}
                     {(updates[wg.id] || []).length === 0 ? (
-                      <p className="text-xs text-zinc-400 py-2">No updates yet.</p>
+                      <div className="flex flex-col items-center py-6 text-center">
+                        <p className="text-sm text-zinc-400">No updates yet for this week.</p>
+                      </div>
                     ) : (updates[wg.id] || []).map((u) => (
-                      <div key={u.id} className="rounded-lg border border-zinc-100 bg-white p-3">
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={u.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <Avatar name={u.user.name} size="sm" />
                             <div>
@@ -228,56 +237,70 @@ export function WeeklyGoalsSection({ goalId, initial, canEdit }: WeeklyGoalsSect
                               <p className="text-xs text-zinc-400">{formatDate(u.createdAt)}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-medium text-zinc-600">{u.progressPercentage}%</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-zinc-600">{u.progressPercentage}%</span>
+                            <span role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && handleDeleteUpdate(u.id, wg.id)} onClick={() => handleDeleteUpdate(u.id, wg.id)} className="cursor-pointer rounded p-1 text-zinc-300 hover:text-red-500"><Trash2 className="h-3 w-3" /></span>
                           </div>
                         </div>
-                        <Progress value={u.progressPercentage} size="sm" className="mb-2" />
-                        <p className="text-sm text-zinc-700">{u.updateText}</p>
+                        <Progress value={u.progressPercentage} size="sm" className="mb-3" />
+                        <div className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{u.updateText}</div>
                         {u.blockers && (
-                          <div className="mt-2 flex items-start gap-1.5 rounded-md bg-amber-50 p-2">
-                            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-                            <p className="text-xs text-amber-700">{u.blockers}</p>
+                          <div className="mt-3 flex items-start gap-1.5 rounded-md bg-amber-50 p-3">
+                            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                            <div className="text-xs text-amber-700 leading-relaxed whitespace-pre-wrap">{u.blockers}</div>
                           </div>
                         )}
                       </div>
                     ))}
 
                     {/* Submit Update Form */}
-                    <form onSubmit={(e) => handleSubmitUpdate(e, wg.id)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-2">
-                      <p className="text-xs font-medium text-zinc-600">Add Update</p>
-                      <textarea
-                        value={updateForm.updateText}
-                        onChange={e => setUpdateForm(p => ({ ...p, updateText: e.target.value }))}
-                        rows={2}
-                        className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400"
-                        placeholder="What progress was made?"
-                        required
-                      />
-                      <div className="grid grid-cols-2 gap-2">
+                    <form onSubmit={(e) => handleSubmitUpdate(e, wg.id)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+                      <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Add Update</p>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-zinc-600">Update text *</label>
+                        <textarea
+                          value={updateForm.updateText}
+                          onChange={e => setUpdateForm(p => ({ ...p, updateText: e.target.value }))}
+                          rows={4}
+                          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 resize-y min-h-[80px]"
+                          placeholder="What progress was made this week? Be as detailed as needed..."
+                          required
+                        />
+                        {formErrors.updateText && <p className="text-xs text-red-500">{formErrors.updateText}</p>}
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-600">Progress (%)</label>
+                          <label className="text-xs font-medium text-zinc-600">Progress (%) *</label>
                           <input
                             type="number"
                             min={0}
                             max={100}
                             value={updateForm.progressPercentage}
-                            onChange={e => setUpdateForm(p => ({ ...p, progressPercentage: parseInt(e.target.value) || 0 }))}
+                            onChange={e => setUpdateForm(p => ({ ...p, progressPercentage: e.target.value ? parseInt(e.target.value) : 0 }))}
                             className="flex h-9 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
                           />
+                          {formErrors.progressPercentage && <p className="text-xs text-red-500">{formErrors.progressPercentage}</p>}
                         </div>
                         <div className="space-y-1">
                           <label className="text-xs font-medium text-zinc-600">Blockers (optional)</label>
-                          <input
+                          <textarea
                             value={updateForm.blockers}
                             onChange={e => setUpdateForm(p => ({ ...p, blockers: e.target.value }))}
-                            className="flex h-9 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
-                            placeholder="Any blockers?"
+                            rows={2}
+                            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 resize-none"
+                            placeholder="Any blockers or issues?"
                           />
                         </div>
                       </div>
+
                       <Button type="submit" size="sm" disabled={updateFormLoading}>
-                        {updateFormLoading ? 'Submitting...' : 'Submit Update'}
+                        {updateFormLoading ? (
+                          <>Submitting...</>
+                        ) : (
+                          <><Send className="h-3.5 w-3.5" /> Submit Update</>
+                        )}
                       </Button>
                     </form>
                   </>
