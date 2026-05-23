@@ -8,7 +8,7 @@
     "start": "next start",
     "postinstall": "prisma generate",
     "seed": "prisma db seed",
-    "vercel-build": "prisma generate && prisma db push --url=\"$DATABASE_URL\" && next build"
+    "vercel-build": "prisma generate && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
