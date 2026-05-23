@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Target, CheckSquare, FileText, TrendingUp, Users } from 'lucide-react'
 import Link from 'next/link'
 import { ChartsSection } from '@/components/dashboard/charts-section'
+import { getDashboardStats } from '@/lib/stats'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -61,10 +62,7 @@ export default async function DashboardPage() {
     take: 5,
   })
 
-  const statsRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/stats`, {
-    cache: 'no-store',
-  }).catch(() => null)
-  const stats = statsRes?.ok ? await statsRes.json() : null
+  const stats = await getDashboardStats(user)
 
   return (
     <div className="space-y-6">

@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
@@ -22,7 +25,7 @@ export async function GET(request: Request) {
     orderBy: { createdAt: 'desc' },
   })
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
+  const baseUrl = new URL(request.url).origin
   return NextResponse.json(attachments.map(a => ({
     ...a,
     url: a.storagePath ? `${baseUrl}${a.storagePath}` : null,
@@ -73,6 +76,6 @@ export async function POST(request: Request) {
     },
   })
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
+  const baseUrl = new URL(request.url).origin
   return NextResponse.json({ ...attachment, url: `${baseUrl}${storagePath}` })
 }
