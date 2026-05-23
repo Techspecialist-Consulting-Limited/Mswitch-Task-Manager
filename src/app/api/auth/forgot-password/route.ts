@@ -10,11 +10,19 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex')
 }
 
+function isEmailConfigured(): boolean {
+  return !!(process.env.RESEND_API_KEY || process.env.SMTP_HOST)
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
     if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    }
+
+    if (!isEmailConfigured()) {
+      console.warn('[FORGOT] No email provider configured. Set RESEND_API_KEY or SMTP_HOST in Vercel env.')
     }
 
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } })

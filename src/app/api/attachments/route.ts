@@ -100,8 +100,9 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const blob = await put(blobPathname, buffer, {
-      access: 'public',
+      access: 'private',
       contentType: file.type,
+      addRandomSuffix: false,
     })
 
     const attachment = await prisma.attachment.create({
