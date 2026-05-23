@@ -4,15 +4,30 @@ import { PrismaNeon } from '@prisma/adapter-neon'
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 function createPrismaClient() {
-  if (process.env.DATABASE_URL?.includes('postgres')) {
-    const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
-    return new PrismaClient({ adapter })
+  const databaseUrl = process.env.DATABASE_URL
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required to access the database.')
   }
-  return new PrismaClient()
+
+  const adapter = new PrismaNeon({ connectionString: databaseUrl })
+  return new PrismaClient({ adapter })
 }
 
-const prisma = globalForPrisma.prisma ?? createPrismaClient()
+function getPrismaClient() {
+  const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+  return prisma
+}
+
+const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = getPrismaClient()
+    const value = Reflect.get(client, prop, receiver)
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})
 
 export { prisma }
