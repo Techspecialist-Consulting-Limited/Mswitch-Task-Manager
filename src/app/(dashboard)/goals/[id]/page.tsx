@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Calendar, Pencil, ArrowLeft } from 'lucide-react'
+import { AlertTriangle, Calendar, CheckCircle2, ClipboardList, FileText, Pencil, ArrowLeft } from 'lucide-react'
 import { DeleteGoalButton } from './delete-button'
 import { WeeklyGoalsSection } from './weekly-goals'
 
@@ -42,7 +42,10 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
       weeklyGoals: {
         include: {
           _count: { select: { weeklyUpdates: true } },
-          weeklyUpdates: { select: { progressPercentage: true } },
+          weeklyUpdates: {
+            select: { progressPercentage: true, blockers: true, createdAt: true },
+            orderBy: { createdAt: 'desc' },
+          },
         },
         orderBy: { weekNumber: 'asc' },
       },
@@ -60,25 +63,128 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
   const averageProgress = allPercentages.length > 0
     ? Math.round(allPercentages.reduce((a, b) => a + b, 0) / allPercentages.length)
     : 0
+  const totalUpdates = (goal.weeklyGoals as any[]).reduce((total, wg) => total + wg.weeklyUpdates.length, 0)
+  const weeklyPlansCreated = goal.weeklyGoals.length
+  const missingWeeklyPlans = Math.max(0, 4 - weeklyPlansCreated)
+  const weeklyGoalsWithoutUpdates = (goal.weeklyGoals as any[]).filter((wg) => wg.weeklyUpdates.length === 0).length
+  const blockerCount = (goal.weeklyGoals as any[]).reduce(
+    (total, wg) => total + wg.weeklyUpdates.filter((u: any) => Boolean(u.blockers?.trim())).length,
+    0
+  )
+  const reportState = blockerCount > 0 || missingWeeklyPlans > 0 || weeklyGoalsWithoutUpdates > 1
+    ? { label: 'Needs Attention', variant: 'warning' as const }
+    : averageProgress >= 80
+      ? { label: 'Strong Progress', variant: 'success' as const }
+      : averageProgress > 0
+        ? { label: 'In Progress', variant: 'info' as const }
+        : { label: 'Awaiting Updates', variant: 'default' as const }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title={goal.title} description={`Created by ${goal.user.name}`}>
         <Link href="/goals"><Button variant="secondary"><ArrowLeft className="h-4 w-4" /> Back</Button></Link>
         {canEdit && <Link href={`/goals/${goal.id}/edit`}><Button variant="secondary"><Pencil className="h-4 w-4" /> Edit</Button></Link>}
         {canEdit && <DeleteGoalButton goalId={goal.id} />}
       </PageHeader>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50">
+              <ClipboardList className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-zinc-900">{weeklyPlansCreated}/4</p>
+              <p className="text-xs text-zinc-500">Weekly plans created</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-zinc-900">{averageProgress}%</p>
+              <p className="text-xs text-zinc-500">Average reported progress</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-50">
+              <FileText className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-zinc-900">{totalUpdates}</p>
+              <p className="text-xs text-zinc-500">Weekly updates submitted</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-red-50">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-zinc-900">{blockerCount}</p>
+              <p className="text-xs text-zinc-500">Blocker reports</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle>Description</CardTitle></CardHeader>
-            <CardContent>
-              {goal.description ? <p className="text-sm text-zinc-600">{goal.description}</p> : <p className="text-sm text-zinc-400 italic">No description provided.</p>}
+            <CardHeader>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle>Monthly Goal Report</CardTitle>
+                <Badge variant={reportState.variant}>{reportState.label}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {goal.description ? <p className="text-sm leading-6 text-zinc-600">{goal.description}</p> : <p className="text-sm text-zinc-400 italic">No description provided.</p>}
+              <div className="rounded-lg bg-zinc-50 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium text-zinc-700">Overall progress from weekly updates</span>
+                  <span className="text-sm font-semibold text-zinc-900">{averageProgress}%</span>
+                </div>
+                <Progress value={averageProgress} size="md" />
+              </div>
+              {(missingWeeklyPlans > 0 || weeklyGoalsWithoutUpdates > 0 || blockerCount > 0) && (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-zinc-100 p-3">
+                    <p className="text-lg font-semibold text-zinc-900">{missingWeeklyPlans}</p>
+                    <p className="text-xs text-zinc-500">Missing weekly plans</p>
+                  </div>
+                  <div className="rounded-lg border border-zinc-100 p-3">
+                    <p className="text-lg font-semibold text-zinc-900">{weeklyGoalsWithoutUpdates}</p>
+                    <p className="text-xs text-zinc-500">Weeks without update</p>
+                  </div>
+                  <div className="rounded-lg border border-zinc-100 p-3">
+                    <p className="text-lg font-semibold text-zinc-900">{blockerCount}</p>
+                    <p className="text-xs text-zinc-500">Blockers to resolve</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <WeeklyGoalsSection goalId={goal.id} initial={(goal.weeklyGoals as any[]).map((wg: any) => ({ id: wg.id, weekNumber: wg.weekNumber, title: wg.title, description: wg.description, status: wg.status }))} canEdit={canEdit} />
+          <WeeklyGoalsSection
+            goalId={goal.id}
+            initial={(goal.weeklyGoals as any[]).map((wg: any) => ({
+              id: wg.id,
+              weekNumber: wg.weekNumber,
+              title: wg.title,
+              description: wg.description,
+              status: wg.status,
+              updateCount: wg.weeklyUpdates.length,
+              latestProgress: wg.weeklyUpdates[0]?.progressPercentage ?? 0,
+              blockerCount: wg.weeklyUpdates.filter((u: any) => Boolean(u.blockers?.trim())).length,
+            }))}
+            canEdit={canEdit}
+          />
         </div>
 
         <div className="space-y-4">

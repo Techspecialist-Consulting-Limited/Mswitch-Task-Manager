@@ -51,7 +51,7 @@ export function ChartsSection({ goalsByMonth, tasksByStatus, weeklyProgress }: C
         </CardContent>
       </Card>
       <Card>
-        <CardHeader><CardTitle>Task Status Distribution</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Extra Assigned Task Status</CardTitle></CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
