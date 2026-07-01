@@ -41,8 +41,8 @@ export default async function UnitsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100">
-                    <Building2 className="h-5 w-5 text-zinc-500" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50">
+                    <Building2 className="h-5 w-5 text-indigo-600" />
                   </div>
                   <div>
                     <CardTitle className="text-base">{unit.name}</CardTitle>

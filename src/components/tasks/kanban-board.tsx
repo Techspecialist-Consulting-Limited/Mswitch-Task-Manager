@@ -10,9 +10,9 @@ import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const COLUMNS = [
-  { id: 'TODO', title: 'To Do', color: 'bg-zinc-100 border-zinc-300' },
-  { id: 'IN_PROGRESS', title: 'In Progress', color: 'bg-blue-50 border-blue-300' },
-  { id: 'DONE', title: 'Done', color: 'bg-emerald-50 border-emerald-300' },
+  { id: 'TODO', title: 'To Do', color: 'bg-zinc-50 border-zinc-200' },
+  { id: 'IN_PROGRESS', title: 'In Progress', color: 'bg-indigo-50 border-indigo-200' },
+  { id: 'DONE', title: 'Done', color: 'bg-emerald-50 border-emerald-200' },
 ] as const
 
 interface Task {
@@ -62,7 +62,7 @@ function Column({ id, title, color, tasks }: { id: string; title: string; color:
   const { setNodeRef, isOver } = useDroppable({ id })
 
   return (
-    <div ref={setNodeRef} className={`flex flex-col rounded-xl border-2 ${color} ${isOver ? 'ring-2 ring-zinc-900/20' : ''}`}>
+    <div ref={setNodeRef} className={`flex flex-col rounded-xl border-2 ${color} ${isOver ? 'ring-2 ring-indigo-400/40' : ''}`}>
       <div className={`px-4 py-3 border-b border-inherit`}>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>

@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 
-const avatarVariants = cva('relative flex shrink-0 items-center justify-center rounded-full bg-zinc-200 text-zinc-600 font-medium overflow-hidden', {
+const avatarVariants = cva('relative flex shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold overflow-hidden', {
   variants: {
     size: {
-      sm: 'h-8 w-8 text-xs',
-      md: 'h-10 w-10 text-sm',
+      sm: 'h-7 w-7 text-xs',
+      md: 'h-9 w-9 text-sm',
       lg: 'h-14 w-14 text-lg',
     },
   },

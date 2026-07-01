@@ -3,10 +3,20 @@
 :root {
   --font-geist-sans: 'Geist', sans-serif;
   --font-geist-mono: 'Geist Mono', monospace;
+
+  /* Indigo accent scale */
+  --accent-50:  #eef2ff;
+  --accent-100: #e0e7ff;
+  --accent-200: #c7d2fe;
+  --accent-400: #818cf8;
+  --accent-500: #6366f1;
+  --accent-600: #4f46e5;
+  --accent-700: #4338ca;
 }
 
 body {
   font-family: var(--font-geist-sans);
+  background-color: #f9fafb;
 }
 
 html {

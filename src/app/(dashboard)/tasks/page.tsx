@@ -129,8 +129,8 @@ export default function TasksPage() {
         <Card>
           <CardContent className="py-16">
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100">
-                <CheckSquare className="h-7 w-7 text-zinc-400" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50">
+                <CheckSquare className="h-8 w-8 text-indigo-400" />
               </div>
               <h3 className="text-base font-semibold text-zinc-900">No tasks</h3>
               <p className="mt-1 text-sm text-zinc-500">No tasks to show.</p>
@@ -152,7 +152,7 @@ export default function TasksPage() {
                         type="checkbox"
                         checked={selectedIds.includes(task.id)}
                         onChange={() => toggleSelect(task.id)}
-                        className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400"
+                        className="h-4 w-4 rounded border-zinc-300 accent-indigo-600 focus:ring-indigo-500"
                         onClick={e => e.stopPropagation()}
                       />
                       <Badge variant={sb.variant}>{sb.label}</Badge>
