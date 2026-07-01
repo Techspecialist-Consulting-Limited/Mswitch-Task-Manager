@@ -92,8 +92,8 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50">
-              <ClipboardList className="h-5 w-5 text-blue-600" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50">
+              <ClipboardList className="h-5 w-5 text-indigo-600" />
             </div>
             <div>
               <p className="text-xl font-bold text-zinc-900">{weeklyPlansCreated}/4</p>
@@ -147,7 +147,7 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
             </CardHeader>
             <CardContent className="space-y-4">
               {goal.description ? <p className="text-sm leading-6 text-zinc-600">{goal.description}</p> : <p className="text-sm text-zinc-400 italic">No description provided.</p>}
-              <div className="rounded-lg bg-zinc-50 p-4">
+              <div className="rounded-xl bg-indigo-50/50 p-4 border border-indigo-100">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-medium text-zinc-700">Overall progress from weekly updates</span>
                   <span className="text-sm font-semibold text-zinc-900">{averageProgress}%</span>
@@ -156,16 +156,16 @@ export default async function GoalDetailPage(props: { params: Promise<{ id: stri
               </div>
               {(missingWeeklyPlans > 0 || weeklyGoalsWithoutUpdates > 0 || blockerCount > 0) && (
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-lg border border-zinc-100 p-3">
-                    <p className="text-lg font-semibold text-zinc-900">{missingWeeklyPlans}</p>
+                  <div className="rounded-lg bg-amber-50 border border-amber-100 p-3">
+                    <p className="text-lg font-semibold text-amber-700">{missingWeeklyPlans}</p>
                     <p className="text-xs text-zinc-500">Missing weekly plans</p>
                   </div>
-                  <div className="rounded-lg border border-zinc-100 p-3">
+                  <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3">
                     <p className="text-lg font-semibold text-zinc-900">{weeklyGoalsWithoutUpdates}</p>
                     <p className="text-xs text-zinc-500">Weeks without update</p>
                   </div>
-                  <div className="rounded-lg border border-zinc-100 p-3">
-                    <p className="text-lg font-semibold text-zinc-900">{blockerCount}</p>
+                  <div className="rounded-lg bg-red-50 border border-red-100 p-3">
+                    <p className="text-lg font-semibold text-red-600">{blockerCount}</p>
                     <p className="text-xs text-zinc-500">Blockers to resolve</p>
                   </div>
                 </div>

@@ -136,14 +136,14 @@ export default function GoalsPage() {
 
       {goals.length === 0 ? (
         <Card>
-          <CardContent className="py-16">
+          <CardContent className="py-20">
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100">
-                <Target className="h-7 w-7 text-zinc-400" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50">
+                <Target className="h-8 w-8 text-indigo-400" />
               </div>
               <h3 className="text-base font-semibold text-zinc-900">No team reports yet</h3>
-              <p className="mt-1 max-w-sm text-sm text-zinc-500">Create this month's report for your team to get started.</p>
-              <Link href="/goals/new"><Button className="mt-4"><Plus className="h-4 w-4" /> Create Report</Button></Link>
+              <p className="mt-1.5 max-w-sm text-sm text-zinc-500">Create this month's report for your team to get started. Any team member can contribute.</p>
+              <Link href="/goals/new"><Button className="mt-5"><Plus className="h-4 w-4" /> Create Report</Button></Link>
             </div>
           </CardContent>
         </Card>
@@ -153,7 +153,7 @@ export default function GoalsPage() {
             const sb = STATUS_BADGE[goal.status] || { variant: 'default', label: goal.status }
             const edit = canEdit(goal)
             return (
-              <Card key={goal.id} className="transition-shadow hover:shadow-md">
+              <Card key={goal.id} className="group transition-shadow hover:shadow-md">
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -161,34 +161,39 @@ export default function GoalsPage() {
                         type="checkbox"
                         checked={selectedIds.includes(goal.id)}
                         onChange={() => toggleSelect(goal.id)}
-                        className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400"
+                        className="h-4 w-4 rounded border-zinc-300 accent-indigo-600 focus:ring-indigo-500"
                         onClick={e => e.stopPropagation()}
                       />
                       <Badge variant={sb.variant}>{sb.label}</Badge>
                     </div>
-                    <span className="text-xs text-zinc-400">{goal._count.weeklyGoals} weeks</span>
+                    <span className="flex items-center gap-1 text-xs text-zinc-400">
+                      <Calendar className="h-3.5 w-3.5" /> {formatMonth(goal.month)}
+                    </span>
                   </div>
+
                   <Link href={`/goals/${goal.id}`} className="block">
                     <InlineEdit
                       value={goal.title}
                       onSave={async (v) => { await handleTitleSave(goal.id, v) }}
-                      className="mb-1 font-semibold text-zinc-900"
+                      className="mb-1 font-semibold text-zinc-900 group-hover:text-indigo-700 transition-colors"
                       disabled={!edit}
                     />
                     {goal.description && <p className="mb-3 line-clamp-2 text-sm text-zinc-500">{goal.description}</p>}
                   </Link>
-                  <div className="mb-3">
+
+                  <div className="mb-4">
                     <Progress value={goal.progress} size="sm" showLabel />
                   </div>
+
                   <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
                     <div className="flex items-center gap-2">
                       {goal.contributors.length > 0 ? (
-                        <div className="flex -space-x-2">
+                        <div className="flex -space-x-1.5">
                           {goal.contributors.slice(0, 4).map(c => (
                             <Avatar key={c.id} name={c.name} size="sm" className="ring-2 ring-white" />
                           ))}
                           {goal.contributors.length > 4 && (
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-medium text-zinc-500 ring-2 ring-white">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-700 ring-2 ring-white">
                               +{goal.contributors.length - 4}
                             </span>
                           )}
@@ -196,10 +201,9 @@ export default function GoalsPage() {
                       ) : (
                         <span className="text-xs text-zinc-400">No updates yet</span>
                       )}
-                      <span className="text-xs text-zinc-500">{goal.unit.name}</span>
                     </div>
-                    <span className="flex items-center gap-1 text-xs text-zinc-400">
-                      <Calendar className="h-3.5 w-3.5" /> {formatMonth(goal.month)}
+                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                      {goal.unit.name}
                     </span>
                   </div>
                 </CardContent>

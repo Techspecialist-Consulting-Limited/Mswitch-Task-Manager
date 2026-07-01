@@ -219,8 +219,8 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-              <Target className="h-6 w-6 text-blue-600" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50">
+              <Target className="h-5 w-5 text-indigo-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-zinc-900">{currentMonthGoals}</p>
@@ -230,8 +230,8 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-50">
-              <TrendingUp className="h-6 w-6 text-emerald-600" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+              <TrendingUp className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-zinc-900">{averageGoalProgress}%</p>
@@ -241,23 +241,23 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-50">
-              <FileText className="h-6 w-6 text-amber-600" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50">
+              <FileText className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-zinc-900">{weeklyUpdatesThisWeek}</p>
-              <p className="text-xs text-zinc-500">Updates submitted this week</p>
+              <p className="text-xs text-zinc-500">Updates this week</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50">
-              <MessageSquareWarning className="h-6 w-6 text-red-600" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
+              <MessageSquareWarning className="h-5 w-5 text-red-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-zinc-900">{totalBlockers}</p>
-              <p className="text-xs text-zinc-500">Active blocker reports</p>
+              <p className="text-xs text-zinc-500">Active blockers</p>
             </div>
           </CardContent>
         </Card>
@@ -294,17 +294,17 @@ export default async function DashboardPage() {
                         </div>
                         <p className="mt-1 text-xs text-zinc-500">{isAdmin ? `${goal.team} - ` : ''}{formatMonth(goal.month)}</p>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[260px]">
-                        <div className="rounded-md bg-zinc-50 px-2 py-2">
-                          <p className="text-sm font-semibold text-zinc-900">{goal.weeklyPlans}/4</p>
+                      <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[240px]">
+                        <div className="rounded-lg bg-indigo-50 px-2 py-2">
+                          <p className="text-sm font-semibold text-indigo-700">{goal.weeklyPlans}/4</p>
                           <p className="text-[11px] text-zinc-500">Plans</p>
                         </div>
-                        <div className="rounded-md bg-zinc-50 px-2 py-2">
+                        <div className="rounded-lg bg-zinc-50 px-2 py-2">
                           <p className="text-sm font-semibold text-zinc-900">{goal.updateCount}</p>
                           <p className="text-[11px] text-zinc-500">Updates</p>
                         </div>
-                        <div className="rounded-md bg-zinc-50 px-2 py-2">
-                          <p className="text-sm font-semibold text-zinc-900">{goal.blockerCount}</p>
+                        <div className={`rounded-lg px-2 py-2 ${goal.blockerCount > 0 ? 'bg-red-50' : 'bg-zinc-50'}`}>
+                          <p className={`text-sm font-semibold ${goal.blockerCount > 0 ? 'text-red-600' : 'text-zinc-900'}`}>{goal.blockerCount}</p>
                           <p className="text-[11px] text-zinc-500">Blockers</p>
                         </div>
                       </div>
@@ -355,22 +355,22 @@ export default async function DashboardPage() {
                 <CardTitle>Report Health</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2.5">
                 <span className="text-zinc-500">All goals</span>
                 <span className="font-semibold text-zinc-900">{totalGoals}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+              <div className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2.5">
                 <span className="text-zinc-500">Active goals</span>
                 <span className="font-semibold text-zinc-900">{activeGoals}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+              <div className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2.5">
                 <span className="text-zinc-500">Missing weekly plans</span>
-                <span className="font-semibold text-zinc-900">{totalMissingPlans}</span>
+                <span className={`font-semibold ${totalMissingPlans > 0 ? 'text-amber-600' : 'text-zinc-900'}`}>{totalMissingPlans}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+              <div className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2.5">
                 <span className="text-zinc-500">Missing weekly updates</span>
-                <span className="font-semibold text-zinc-900">{totalMissingUpdates}</span>
+                <span className={`font-semibold ${totalMissingUpdates > 0 ? 'text-red-600' : 'text-zinc-900'}`}>{totalMissingUpdates}</span>
               </div>
             </CardContent>
           </Card>

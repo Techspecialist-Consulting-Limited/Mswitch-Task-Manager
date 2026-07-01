@@ -35,11 +35,11 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-200">
               <Target className="h-6 w-6 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Welcome back</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Welcome back</h1>
           <p className="mt-1 text-sm text-zinc-500">Sign in to TaskFlow</p>
         </div>
         {registered && <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Account created. Please sign in.</div>}
@@ -50,10 +50,10 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</Button>
         </form>
         <div className="mt-4 text-center">
-          <Link href="/forgot-password" className="text-sm text-zinc-500 hover:text-zinc-900">Forgot password?</Link>
+          <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800">Forgot password?</Link>
         </div>
         <p className="mt-6 text-center text-sm text-zinc-500">
-          Don&apos;t have an account? <Link href="/register" className="font-medium text-zinc-900 hover:underline">Sign up</Link>
+          Don&apos;t have an account? <Link href="/register" className="font-medium text-indigo-600 hover:underline">Sign up</Link>
         </p>
       </div>
     </div>

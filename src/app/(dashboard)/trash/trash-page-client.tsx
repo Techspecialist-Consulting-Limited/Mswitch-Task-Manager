@@ -53,7 +53,7 @@ export function TrashPageClient() {
             onClick={() => { setTypeFilter(tab.value); setPage(1) }}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               typeFilter === tab.value
-                ? 'bg-zinc-100 text-zinc-900 border-b-2 border-zinc-900'
+                ? 'text-indigo-700 border-b-2 border-indigo-600'
                 : 'text-zinc-500 hover:text-zinc-700'
             }`}
           >

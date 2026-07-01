@@ -85,7 +85,7 @@ export default function NewGoalPage() {
             <Input id="title" name="title" label="Title" placeholder="e.g. Q2 Revenue Target" value={title} onChange={e => setTitle(e.target.value)} required />
             <div className="space-y-1.5">
               <label htmlFor="description" className="text-sm font-medium text-zinc-700">Description</label>
-              <textarea id="description" name="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400" placeholder="Describe what your team is aiming for this month..." />
+              <textarea id="description" name="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} className="flex w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Describe what your team is aiming for this month..." />
             </div>
             <Select id="month" name="month" label="Month" options={getMonthOptions()} placeholder="Select month" required />
             <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function NewGoalPage() {
                 id="saveAsTemplate"
                 checked={saveAsTemplate}
                 onChange={e => setSaveAsTemplate(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400"
+                className="h-4 w-4 rounded border-zinc-300 accent-indigo-600 focus:ring-indigo-500"
               />
               <label htmlFor="saveAsTemplate" className="text-sm text-zinc-600">Save as template</label>
             </div>
