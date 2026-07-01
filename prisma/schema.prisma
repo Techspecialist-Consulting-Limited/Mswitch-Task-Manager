@@ -19,7 +19,7 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
 
-  monthlyGoals  MonthlyGoal[]
+  createdGoals  MonthlyGoal[]
   weeklyUpdates WeeklyUpdate[]
   assignedTasks Task[]       @relation("TaskAssignee")
   createdTasks  Task[]       @relation("TaskCreator")
@@ -50,10 +50,10 @@ model MonthlyGoal {
   description String?
   month       String
   status      String    @default("ACTIVE")
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  unitId      String?
-  unit        Unit?     @relation(fields: [unitId], references: [id])
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  unitId      String
+  unit        Unit      @relation(fields: [unitId], references: [id])
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

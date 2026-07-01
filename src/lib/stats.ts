@@ -13,8 +13,7 @@ export async function getDashboardStats(user: StatsUser) {
 
   const goalWhere: Record<string, unknown> = { deletedAt: null }
   if (!isAdmin) {
-    if (isLead && unitId) goalWhere.unitId = unitId
-    else goalWhere.userId = userId
+    goalWhere.unitId = unitId ?? '__none__'
   }
 
   const taskWhere: Record<string, unknown> = { deletedAt: null }
@@ -23,7 +22,8 @@ export async function getDashboardStats(user: StatsUser) {
     else taskWhere.assignedToId = userId
   }
 
-  const updateWhere = isAdmin ? {} : { userId }
+  // Weekly progress reflects the whole team's reporting, not just the logged-in user's own posts.
+  const updateWhere = isAdmin ? {} : { weeklyGoal: { monthlyGoal: { unitId: unitId ?? '__none__' } } }
   const now = new Date()
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
 

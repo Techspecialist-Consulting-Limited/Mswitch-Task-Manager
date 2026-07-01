@@ -29,7 +29,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const user = await prisma.user.findUnique({ where: { id } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const { role, isActive } = await request.json()
+  const { role, isActive, unitId } = await request.json()
   const data: Record<string, unknown> = {}
 
   if (role !== undefined) {
@@ -42,6 +42,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     data.isActive = isActive
   }
 
+  if (unitId !== undefined) {
+    if (unitId !== null) {
+      const unit = await prisma.unit.findUnique({ where: { id: unitId } })
+      if (!unit) return NextResponse.json({ error: 'Unit not found' }, { status: 400 })
+    }
+    data.unitId = unitId
+  }
+
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
@@ -49,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const updated = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, name: true, email: true, role: true, isActive: true, unit: { select: { name: true } } },
+    select: { id: true, name: true, email: true, role: true, isActive: true, unit: { select: { id: true, name: true } } },
   })
   return NextResponse.json(updated)
 }

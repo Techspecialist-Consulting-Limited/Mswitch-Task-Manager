@@ -61,8 +61,7 @@ function getReportState(progress: number, blockerCount: number, missingUpdateCou
 
 function getRoleDescription(role: string) {
   if (role === 'SUPER_ADMIN') return 'Organization goal reporting dashboard'
-  if (role === 'UNIT_LEAD') return 'Unit goal reporting and review dashboard'
-  return 'Your monthly goals, weekly updates, and progress report'
+  return "Your team's monthly goals, weekly updates, and progress report"
 }
 
 export default async function DashboardPage() {
@@ -80,8 +79,7 @@ export default async function DashboardPage() {
 
   const goalWhere: Record<string, unknown> = { deletedAt: null }
   if (!isAdmin) {
-    if (isLead && user.unitId) goalWhere.unitId = user.unitId
-    else goalWhere.userId = user.id
+    goalWhere.unitId = user.unitId ?? '__none__'
   }
 
   const currentGoalWhere = { ...goalWhere, month: monthKey }
@@ -113,7 +111,7 @@ export default async function DashboardPage() {
     prisma.monthlyGoal.findMany({
       where: currentGoalWhere,
       include: {
-        user: { select: { name: true } },
+        unit: { select: { name: true } },
         weeklyGoals: {
           include: {
             weeklyUpdates: {
@@ -129,7 +127,7 @@ export default async function DashboardPage() {
     }),
     prisma.monthlyGoal.findMany({
       where: goalWhere,
-      include: { user: { select: { name: true } } },
+      include: { unit: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
       take: 5,
     }),
@@ -169,7 +167,7 @@ export default async function DashboardPage() {
     return {
       id: goal.id,
       title: goal.title,
-      owner: goal.user.name,
+      team: goal.unit.name,
       month: goal.month,
       status: goal.status,
       progress,
@@ -294,7 +292,7 @@ export default async function DashboardPage() {
                           <p className="font-semibold text-zinc-900">{goal.title}</p>
                           <Badge variant={goal.reportState.variant}>{goal.reportState.label}</Badge>
                         </div>
-                        <p className="mt-1 text-xs text-zinc-500">{isAdmin || isLead ? `${goal.owner} - ` : ''}{formatMonth(goal.month)}</p>
+                        <p className="mt-1 text-xs text-zinc-500">{isAdmin ? `${goal.team} - ` : ''}{formatMonth(goal.month)}</p>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[260px]">
                         <div className="rounded-md bg-zinc-50 px-2 py-2">
@@ -394,7 +392,7 @@ export default async function DashboardPage() {
               <Link key={goal.id} href={`/goals/${goal.id}`} className="flex items-center justify-between rounded-lg border border-zinc-100 p-3 mb-2 last:mb-0 hover:bg-zinc-50 transition-colors">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-zinc-900">{goal.title}</p>
-                  <p className="text-xs text-zinc-500">{isAdmin || isLead ? `${goal.user.name} - ` : ''}{formatMonth(goal.month)}</p>
+                  <p className="text-xs text-zinc-500">{isAdmin ? `${goal.unit.name} - ` : ''}{formatMonth(goal.month)}</p>
                 </div>
                 <Badge variant={goal.status === 'COMPLETED' ? 'success' : goal.status === 'ACTIVE' ? 'info' : 'default'}>{goal.status}</Badge>
               </Link>

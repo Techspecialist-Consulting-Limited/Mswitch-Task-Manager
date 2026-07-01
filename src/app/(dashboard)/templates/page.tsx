@@ -21,11 +21,11 @@ export default async function TemplatesPage() {
   const session = await auth()
   if (!session?.user) redirect('/login')
 
+  const isSuperAdmin = session.user.role === 'SUPER_ADMIN'
   const templates: Template[] = await prisma.goalTemplate.findMany({
+    where: isSuperAdmin ? {} : { OR: [{ unitId: session.user.unitId }, { unitId: null }] },
     orderBy: { createdAt: 'desc' },
   })
-
-  const isSuperAdmin = session.user.role === 'SUPER_ADMIN'
 
   return (
     <div>

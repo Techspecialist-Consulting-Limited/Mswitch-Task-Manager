@@ -4,6 +4,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { isUnitMember } from '@/lib/permissions'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -22,7 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   if (!goal) return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
 
-  if (session.user.role === 'STAFF' && goal.userId !== session.user.id) {
+  if (!isUnitMember(session.user, goal.unitId)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

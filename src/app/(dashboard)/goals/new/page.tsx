@@ -63,20 +63,20 @@ export default function NewGoalPage() {
       }).catch(() => {})
     }
 
-    toast.success('Goal created')
+    toast.success('Team report created')
     router.push('/goals')
     router.refresh()
   }
 
   return (
     <div>
-      <PageHeader title="New Goal" description="Create a new monthly goal">
+      <PageHeader title="New Team Report" description="Create this month's report for your team">
         <Link href="/goals"><Button variant="secondary"><ArrowLeft className="h-4 w-4" /> Back</Button></Link>
       </PageHeader>
       <Card className="max-w-lg">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Goal Details</CardTitle>
+            <CardTitle>Report Details</CardTitle>
             <TemplatePicker onSelect={handleTemplateSelect} />
           </div>
         </CardHeader>
@@ -85,7 +85,7 @@ export default function NewGoalPage() {
             <Input id="title" name="title" label="Title" placeholder="e.g. Q2 Revenue Target" value={title} onChange={e => setTitle(e.target.value)} required />
             <div className="space-y-1.5">
               <label htmlFor="description" className="text-sm font-medium text-zinc-700">Description</label>
-              <textarea id="description" name="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400" placeholder="Describe your goal..." />
+              <textarea id="description" name="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400" placeholder="Describe what your team is aiming for this month..." />
             </div>
             <Select id="month" name="month" label="Month" options={getMonthOptions()} placeholder="Select month" required />
             <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function NewGoalPage() {
               <label htmlFor="saveAsTemplate" className="text-sm text-zinc-600">Save as template</label>
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating...' : 'Create Goal'}</Button>
+            <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating...' : 'Create Report'}</Button>
           </form>
         </CardContent>
       </Card>

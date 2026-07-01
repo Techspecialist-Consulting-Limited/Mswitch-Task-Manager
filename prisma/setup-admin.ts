@@ -33,7 +33,7 @@ async function main() {
     console.log('\nCleaning up related data...')
 
     const [delGoals, delTasks, delComments, delNotifs, delKeys, delUpdates] = await Promise.all([
-      prisma.monthlyGoal.deleteMany({ where: { userId: { in: ids } } }),
+      prisma.monthlyGoal.deleteMany({ where: { createdById: { in: ids } } }),
       prisma.task.deleteMany({ where: { OR: [{ assignedToId: { in: ids } }, { assignedById: { in: ids } }] } }),
       prisma.comment.deleteMany({ where: { userId: { in: ids } } }),
       prisma.notification.deleteMany({ where: { userId: { in: ids } } }),

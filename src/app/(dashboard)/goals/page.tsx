@@ -37,9 +37,10 @@ interface Goal {
   description: string | null
   month: string
   status: string
-  userId: string
-  unitId: string | null
-  user: { name: string }
+  unitId: string
+  unit: { id: string; name: string }
+  createdBy: { name: string }
+  contributors: { id: string; name: string }[]
   _count: { weeklyGoals: number }
   progress: number
   createdAt: string
@@ -51,7 +52,7 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [sessionRole, setSessionRole] = useState<string>('')
-  const [sessionUserId, setSessionUserId] = useState<string>('')
+  const [sessionUnitId, setSessionUnitId] = useState<string>('')
   useEffect(() => {
     fetch('/api/goals').then(r => r.json()).then(d => {
       if (Array.isArray(d)) setGoals(d)
@@ -61,13 +62,13 @@ export default function GoalsPage() {
     fetch('/api/auth/session').then(r => r.json()).then(s => {
       if (s?.user) {
         setSessionRole(s.user.role)
-        setSessionUserId(s.user.id)
+        setSessionUnitId(s.user.unitId || '')
       }
     }).catch(() => {})
   }, [])
 
   function canEdit(goal: Goal) {
-    return sessionRole === 'SUPER_ADMIN' || (sessionRole === 'UNIT_LEAD' && goal.unitId !== null) || goal.userId === sessionUserId
+    return sessionRole === 'SUPER_ADMIN' || goal.unitId === sessionUnitId
   }
 
   function toggleSelect(id: string) {
@@ -109,7 +110,7 @@ export default function GoalsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Goals" description="Monthly goals and weekly breakdowns" />
+        <PageHeader title="Team Reports" description="Monthly team goals and weekly breakdowns" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map(i => (
             <Card key={i}>
@@ -128,9 +129,9 @@ export default function GoalsPage() {
 
   return (
     <div>
-      <PageHeader title="Goals" description="Monthly goals and weekly breakdowns">
+      <PageHeader title="Team Reports" description="Monthly team goals and weekly breakdowns">
         <a href="/api/export/goals"><Button variant="secondary"><Download className="h-4 w-4" /> Export CSV</Button></a>
-        <Link href="/goals/new"><Button><Plus className="h-4 w-4" /> New Goal</Button></Link>
+        <Link href="/goals/new"><Button><Plus className="h-4 w-4" /> New Report</Button></Link>
       </PageHeader>
 
       {goals.length === 0 ? (
@@ -140,9 +141,9 @@ export default function GoalsPage() {
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100">
                 <Target className="h-7 w-7 text-zinc-400" />
               </div>
-              <h3 className="text-base font-semibold text-zinc-900">No goals yet</h3>
-              <p className="mt-1 max-w-sm text-sm text-zinc-500">Create your first monthly goal to get started.</p>
-              <Link href="/goals/new"><Button className="mt-4"><Plus className="h-4 w-4" /> Create Goal</Button></Link>
+              <h3 className="text-base font-semibold text-zinc-900">No team reports yet</h3>
+              <p className="mt-1 max-w-sm text-sm text-zinc-500">Create this month's report for your team to get started.</p>
+              <Link href="/goals/new"><Button className="mt-4"><Plus className="h-4 w-4" /> Create Report</Button></Link>
             </div>
           </CardContent>
         </Card>
@@ -181,8 +182,21 @@ export default function GoalsPage() {
                   </div>
                   <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
                     <div className="flex items-center gap-2">
-                      <Avatar name={goal.user.name} size="sm" />
-                      <span className="text-xs text-zinc-500">{goal.user.name}</span>
+                      {goal.contributors.length > 0 ? (
+                        <div className="flex -space-x-2">
+                          {goal.contributors.slice(0, 4).map(c => (
+                            <Avatar key={c.id} name={c.name} size="sm" className="ring-2 ring-white" />
+                          ))}
+                          {goal.contributors.length > 4 && (
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-medium text-zinc-500 ring-2 ring-white">
+                              +{goal.contributors.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-zinc-400">No updates yet</span>
+                      )}
+                      <span className="text-xs text-zinc-500">{goal.unit.name}</span>
                     </div>
                     <span className="flex items-center gap-1 text-xs text-zinc-400">
                       <Calendar className="h-3.5 w-3.5" /> {formatMonth(goal.month)}

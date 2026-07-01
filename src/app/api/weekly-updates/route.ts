@@ -4,7 +4,9 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { createNotification } from '@/lib/notifications'
+import { createNotificationForUsers } from '@/lib/notifications'
+import { isUnitMember } from '@/lib/permissions'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: Request) {
   try {
@@ -17,13 +19,11 @@ export async function GET(request: Request) {
 
     const wg = await prisma.weeklyGoal.findUnique({
       where: { id: weeklyGoalId },
-      include: { monthlyGoal: { select: { userId: true, unitId: true } } },
+      include: { monthlyGoal: { select: { unitId: true } } },
     })
     if (!wg) return NextResponse.json({ error: 'Weekly goal not found' }, { status: 404 })
 
-    const { role, id: userId, unitId } = session.user
-    const canView = role === 'SUPER_ADMIN' || wg.monthlyGoal.userId === userId || (role === 'UNIT_LEAD' && wg.monthlyGoal.unitId === unitId)
-    if (!canView) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!isUnitMember(session.user, wg.monthlyGoal.unitId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const updates = await prisma.weeklyUpdate.findMany({
       where: { weeklyGoalId },
@@ -49,13 +49,11 @@ export async function POST(request: Request) {
 
     const wg = await prisma.weeklyGoal.findUnique({
       where: { id: weeklyGoalId },
-      include: { monthlyGoal: { select: { userId: true, unitId: true } } },
+      include: { monthlyGoal: { select: { id: true, unitId: true, unit: { select: { members: { select: { id: true } } } } } } },
     })
     if (!wg) return NextResponse.json({ error: 'Weekly goal not found' }, { status: 404 })
 
-    const { role, id: userId, unitId } = session.user
-    const canSubmit = role === 'SUPER_ADMIN' || wg.monthlyGoal.userId === userId || (role === 'UNIT_LEAD' && wg.monthlyGoal.unitId === unitId) || role === 'STAFF'
-    if (!canSubmit) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!isUnitMember(session.user, wg.monthlyGoal.unitId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const update = await prisma.weeklyUpdate.create({
       data: {
@@ -68,14 +66,15 @@ export async function POST(request: Request) {
       include: { user: { select: { id: true, name: true } } },
     })
 
-    // Notify the goal owner if different from submitter
-    if (wg.monthlyGoal.userId !== session.user.id) {
-      createNotification({
-        userId: wg.monthlyGoal.userId,
+    await logActivity('CREATED', 'WEEKLY_UPDATE', update.id, session.user.id, session.user.name ?? 'Unknown', { weeklyGoalId, progressPercentage: update.progressPercentage })
+
+    const otherMemberIds = wg.monthlyGoal.unit.members.map(m => m.id).filter(id => id !== session.user.id)
+    if (otherMemberIds.length > 0) {
+      createNotificationForUsers(otherMemberIds, {
         title: 'Weekly update submitted',
-        message: `${session.user.name} submitted an update on "${wg.title}" (${progressPercentage ?? 0}% complete)`,
+        message: `${session.user.name} submitted an update on "${wg.title}" (${update.progressPercentage}% complete)`,
         type: 'INFO',
-        link: `/goals/${wg.monthlyGoalId}`,
+        link: `/goals/${wg.monthlyGoal.id}`,
       })
     }
 

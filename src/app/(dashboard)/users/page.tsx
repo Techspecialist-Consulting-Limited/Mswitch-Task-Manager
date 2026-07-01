@@ -14,10 +14,13 @@ export default async function UsersPage() {
   if (!session?.user) redirect('/login')
   if (!canManageUsers(session.user.role)) redirect('/dashboard')
 
-  const users = await prisma.user.findMany({
-    include: { unit: { select: { name: true } } },
-    orderBy: { name: 'asc' },
-  })
+  const [users, units] = await Promise.all([
+    prisma.user.findMany({
+      include: { unit: { select: { id: true, name: true } } },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.unit.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+  ])
 
   const serialized = users.map(u => ({
     id: u.id,
@@ -25,6 +28,7 @@ export default async function UsersPage() {
     email: u.email,
     role: u.role,
     isActive: u.isActive,
+    unitId: u.unit?.id || null,
     unitName: u.unit?.name || null,
   }))
 
@@ -34,7 +38,7 @@ export default async function UsersPage() {
       <Card>
         <CardHeader><CardTitle>All Users</CardTitle></CardHeader>
         <CardContent>
-          <UsersList users={serialized} />
+          <UsersList users={serialized} units={units} />
         </CardContent>
       </Card>
     </div>

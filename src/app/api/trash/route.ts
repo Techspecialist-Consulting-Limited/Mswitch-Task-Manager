@@ -17,12 +17,13 @@ export async function GET(request: Request) {
 
   const isAdmin = session.user.role === 'SUPER_ADMIN'
   const userId = session.user.id
+  const unitId = session.user.unitId
 
   const goalWhere: Record<string, unknown> = { deletedAt: { not: null } }
   const taskWhere: Record<string, unknown> = { deletedAt: { not: null } }
 
   if (!isAdmin) {
-    goalWhere.userId = userId
+    goalWhere.unitId = unitId ?? '__none__'
     taskWhere.assignedToId = userId
   }
 

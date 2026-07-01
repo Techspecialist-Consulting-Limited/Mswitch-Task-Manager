@@ -13,14 +13,21 @@ interface UserItem {
   email: string
   role: string
   isActive: boolean
+  unitId: string | null
   unitName: string | null
+}
+
+interface UnitOption {
+  id: string
+  name: string
 }
 
 interface UsersListProps {
   users: UserItem[]
+  units: UnitOption[]
 }
 
-export function UsersList({ users }: UsersListProps) {
+export function UsersList({ users, units }: UsersListProps) {
   const [search, setSearch] = useState('')
 
   const filtered = users.filter((u) => {
@@ -46,11 +53,10 @@ export function UsersList({ users }: UsersListProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {u.unitName && <span className="text-xs text-zinc-400">{u.unitName}</span>}
             <Badge variant={!u.isActive ? 'danger' : u.role === 'SUPER_ADMIN' ? 'info' : u.role === 'UNIT_LEAD' ? 'purple' : 'default'}>
               {!u.isActive ? 'Inactive' : ROLE_LABELS[u.role] || u.role}
             </Badge>
-            <UserActions userId={u.id} currentRole={u.role} isActive={u.isActive} />
+            <UserActions userId={u.id} currentRole={u.role} isActive={u.isActive} currentUnitId={u.unitId} units={units} />
           </div>
         </div>
       ))}

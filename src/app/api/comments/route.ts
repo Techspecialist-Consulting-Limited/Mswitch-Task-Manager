@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { createNotification } from '@/lib/notifications'
+import { createNotification, createNotificationForUsers } from '@/lib/notifications'
 
 export async function GET(request: Request) {
   try {
@@ -52,13 +52,13 @@ export async function POST(request: Request) {
       include: { user: { select: { id: true, name: true, email: true } } },
     })
 
-    // Notify relevant user if commenting on a goal or task that belongs to someone else
+    // Notify relevant team/user if commenting on a goal or task that belongs to someone else
     if (targetType === 'GOAL') {
-      const goal = await prisma.monthlyGoal.findUnique({ where: { id: targetId } })
-      if (goal && goal.userId !== session.user.id) {
-        createNotification({
-          userId: goal.userId,
-          title: 'New comment on your goal',
+      const goal = await prisma.monthlyGoal.findUnique({ where: { id: targetId }, include: { unit: { select: { members: { select: { id: true } } } } } })
+      const otherMemberIds = goal?.unit.members.map(m => m.id).filter(id => id !== session.user.id) ?? []
+      if (otherMemberIds.length > 0) {
+        createNotificationForUsers(otherMemberIds, {
+          title: 'New comment on your team report',
           message: `${session.user.name} commented: ${text.slice(0, 100)}`,
           type: 'INFO',
           link: `/goals/${targetId}`,

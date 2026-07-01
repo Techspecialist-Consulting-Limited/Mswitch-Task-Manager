@@ -4,17 +4,18 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { isUnitMember } from '@/lib/permissions'
+import { logActivity } from '@/lib/activity-log'
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const update = await prisma.weeklyUpdate.findUnique({ where: { id } })
+  const update = await prisma.weeklyUpdate.findUnique({ where: { id }, include: { weeklyGoal: { select: { monthlyGoal: { select: { unitId: true } } } } } })
   if (!update) return NextResponse.json({ error: 'Update not found' }, { status: 404 })
 
-  const { role, id: userId } = session.user
-  if (role !== 'SUPER_ADMIN' && update.userId !== userId) {
+  if (!isUnitMember(session.user, update.weeklyGoal.monthlyGoal.unitId)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -28,6 +29,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
     include: { user: { select: { id: true, name: true } } },
   })
+
+  await logActivity('UPDATED', 'WEEKLY_UPDATE', update.id, session.user.id, session.user.name ?? 'Unknown')
+
   return NextResponse.json(updated)
 }
 
@@ -36,14 +40,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const update = await prisma.weeklyUpdate.findUnique({ where: { id } })
+  const update = await prisma.weeklyUpdate.findUnique({ where: { id }, include: { weeklyGoal: { select: { monthlyGoal: { select: { unitId: true } } } } } })
   if (!update) return NextResponse.json({ error: 'Update not found' }, { status: 404 })
 
-  const { role, id: userId } = session.user
-  if (role !== 'SUPER_ADMIN' && update.userId !== userId) {
+  if (!isUnitMember(session.user, update.weeklyGoal.monthlyGoal.unitId)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   await prisma.weeklyUpdate.delete({ where: { id } })
+
+  await logActivity('DELETED', 'WEEKLY_UPDATE', update.id, session.user.id, session.user.name ?? 'Unknown')
+
   return NextResponse.json({ success: true })
 }

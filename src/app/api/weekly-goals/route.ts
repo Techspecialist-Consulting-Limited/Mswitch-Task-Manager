@@ -4,6 +4,8 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { isUnitMember } from '@/lib/permissions'
+import { logActivity } from '@/lib/activity-log'
 
 export async function GET(request: Request) {
   const session = await auth()
@@ -13,12 +15,10 @@ export async function GET(request: Request) {
   const monthlyGoalId = searchParams.get('monthlyGoalId')
   if (!monthlyGoalId) return NextResponse.json({ error: 'monthlyGoalId is required' }, { status: 400 })
 
-  const goal = await prisma.monthlyGoal.findUnique({ where: { id: monthlyGoalId }, select: { userId: true, unitId: true } })
+  const goal = await prisma.monthlyGoal.findUnique({ where: { id: monthlyGoalId }, select: { unitId: true } })
   if (!goal) return NextResponse.json({ error: 'Monthly goal not found' }, { status: 404 })
 
-  const { role, id: userId, unitId } = session.user
-  const canView = role === 'SUPER_ADMIN' || goal.userId === userId || (role === 'UNIT_LEAD' && goal.unitId === unitId)
-  if (!canView) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isUnitMember(session.user, goal.unitId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const weeklyGoals = await prisma.weeklyGoal.findMany({
     where: { monthlyGoalId },
@@ -39,12 +39,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'weekNumber must be between 1 and 4' }, { status: 400 })
   }
 
-  const goal = await prisma.monthlyGoal.findUnique({ where: { id: monthlyGoalId }, select: { userId: true, unitId: true } })
+  const goal = await prisma.monthlyGoal.findUnique({ where: { id: monthlyGoalId }, select: { unitId: true } })
   if (!goal) return NextResponse.json({ error: 'Monthly goal not found' }, { status: 404 })
 
-  const { role, id: userId, unitId } = session.user
-  const canCreate = role === 'SUPER_ADMIN' || goal.userId === userId || (role === 'UNIT_LEAD' && goal.unitId === unitId)
-  if (!canCreate) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isUnitMember(session.user, goal.unitId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const existing = await prisma.weeklyGoal.findFirst({ where: { monthlyGoalId, weekNumber } })
   if (existing) return NextResponse.json({ error: `Week ${weekNumber} already exists for this goal` }, { status: 409 })
@@ -52,5 +50,8 @@ export async function POST(request: Request) {
   const weeklyGoal = await prisma.weeklyGoal.create({
     data: { weekNumber, title, description: description || null, monthlyGoalId },
   })
+
+  await logActivity('CREATED', 'WEEKLY_GOAL', weeklyGoal.id, session.user.id, session.user.name ?? 'Unknown', { title: weeklyGoal.title, weekNumber })
+
   return NextResponse.json(weeklyGoal)
 }
